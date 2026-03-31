@@ -1738,3 +1738,70 @@ WARNING:  WatchFiles detected changes in 'backend\app\services\postgres_reposito
 INFO:     Started server process [4328]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'backend\app\models\schemas.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4328]
+WARNING:  WatchFiles detected changes in 'backend\app\api\router.py', 'backend\app\api\routes\uploads.py'. Reloading...
+Process SpawnProcess-6:
+Traceback (most recent call last):
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\process.py", line 320, in _bootstrap
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\uvicorn\_subprocess.py", line 78, in subprocess_started
+    target(sockets=sockets)
+    ~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\uvicorn\server.py", line 62, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\runners.py", line 203, in run
+    with Runner(debug=debug, loop_factory=loop_factory) as runner:
+         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\runners.py", line 59, in __enter__
+    self._lazy_init()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\runners.py", line 146, in _lazy_init
+    self._loop = events.new_event_loop()
+                 ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 844, in new_event_loop
+    return _get_event_loop_policy().new_event_loop()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 732, in new_event_loop
+    return self._loop_factory()
+           ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\selector_events.py", line 66, in __init__
+    self._make_self_pipe()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\selector_events.py", line 120, in _make_self_pipe
+    self._ssock, self._csock = socket.socketpair()
+                               ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 638, in _fallback_socketpair
+    lsock.close()
+    ~~~~~~~~~~~^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 511, in close
+    self._real_close()
+    ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 505, in _real_close
+    _ss.close(self)
+    ~~~~~~~~~^^^^^^
+KeyboardInterrupt
+Exception ignored while calling deallocator <function BaseEventLoop.__del__ at 0x000002227F101590>:
+Traceback (most recent call last):
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\base_events.py", line 760, in __del__
+    self.close()
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\selector_events.py", line 104, in close
+    self._close_self_pipe()
+  File "C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\selector_events.py", line 111, in _close_self_pipe
+    self._remove_reader(self._ssock.fileno())
+AttributeError: '_WindowsSelectorEventLoop' object has no attribute '_ssock'
+C:\Users\22060\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\process.py:334: RuntimeWarning: coroutine 'Server.serve' was never awaited
+  traceback.print_exc()
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+INFO:     Started server process [31904]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

@@ -18,45 +18,33 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadAll = async () => {
+    const [workbench, templateCenter, dataManagement, history, realReportTemplates] = await Promise.all([
+      getWorkbench(),
+      getTemplateCenter(),
+      getDataManagement(),
+      getHistory(),
+      listReportTemplates(),
+    ]);
 
-    async function load() {
-      const [workbench, templateCenter, dataManagement, history, realReportTemplates] = await Promise.all([
-        getWorkbench(),
-        getTemplateCenter(),
-        getDataManagement(),
-        getHistory(),
-        listReportTemplates(),
-      ]);
-
-      if (cancelled) {
-        return;
-      }
-
-      startTransition(() => {
-        setAppData({
-          workbench,
-          templateCenter,
-          dataManagement,
-          history,
-        });
-        setReportTemplates(realReportTemplates);
-        setLoadError(null);
-        setIsLoading(false);
+    startTransition(() => {
+      setAppData({
+        workbench,
+        templateCenter,
+        dataManagement,
+        history,
       });
-    }
-
-    load().catch((error: unknown) => {
-      if (!cancelled) {
-        setLoadError(error instanceof Error ? error.message : '加载失败');
-        setIsLoading(false);
-      }
+      setReportTemplates(realReportTemplates);
+      setLoadError(null);
+      setIsLoading(false);
     });
+  };
 
-    return () => {
-      cancelled = true;
-    };
+  useEffect(() => {
+    void loadAll().catch((error: unknown) => {
+      setLoadError(error instanceof Error ? error.message : '加载失败');
+      setIsLoading(false);
+    });
   }, []);
 
   const activeTab: TabKey = activeRoute === 'reportTemplates' ? 'templates' : activeRoute;
@@ -66,25 +54,25 @@ function App() {
       key: 'workbench' as const,
       label: '生成工作台',
       hint: '',
-      count: appData ? `${appData.workbench.queue.length}` : '',
+      count: appData ? String(appData.workbench.queue.length) : '',
     },
     {
       key: 'templates' as const,
       label: '模板中心',
       hint: '',
-      count: appData ? `${appData.templateCenter.templates.length + reportTemplates.length}` : '',
+      count: appData ? String(appData.templateCenter.templates.length + reportTemplates.length) : '',
     },
     {
       key: 'data' as const,
       label: '数据管理',
       hint: '',
-      count: appData ? `${appData.dataManagement.students.length}` : '',
+      count: appData ? String(appData.dataManagement.students.length) : '',
     },
     {
       key: 'history' as const,
       label: '历史记录',
       hint: '',
-      count: appData ? `${appData.history.records.length}` : '',
+      count: appData ? String(appData.history.records.length) : '',
     },
   ];
 
@@ -120,13 +108,24 @@ function App() {
         <ReportTemplateManagerView
           templates={reportTemplates}
           onBack={() => setActiveRoute('templates')}
-          onTemplatesChange={setReportTemplates}
+          onTemplatesChange={(templates) => {
+            setReportTemplates(templates);
+            void loadAll();
+          }}
         />
       );
     }
 
     if (activeRoute === 'workbench') {
-      return <WorkbenchView data={appData.workbench} students={appData.dataManagement.students} onNavigate={setActiveRoute} />;
+      return (
+        <WorkbenchView
+          data={appData.workbench}
+          students={appData.dataManagement.students}
+          reportTemplates={reportTemplates}
+          onNavigate={setActiveRoute}
+          onRefresh={() => void loadAll()}
+        />
+      );
     }
 
     if (activeRoute === 'templates') {
@@ -135,6 +134,7 @@ function App() {
           data={{ ...appData.templateCenter, reportTemplates }}
           onNavigate={setActiveRoute}
           onOpenReportTemplates={() => setActiveRoute('reportTemplates')}
+          onRefresh={() => void loadAll()}
         />
       );
     }
@@ -143,13 +143,13 @@ function App() {
       return <DataManagementView data={appData.dataManagement} onNavigate={setActiveRoute} />;
     }
 
-    return <HistoryView data={appData.history} onNavigate={setActiveRoute} />;
+    return <HistoryView data={appData.history} onNavigate={setActiveRoute} onRefresh={() => void loadAll()} />;
   };
 
   return (
     <div className="app-shell">
       <TopNav activeTab={activeTab} tabs={navigation} onTabChange={setActiveRoute} />
-      <main>{renderContent()}</main>
+      <main className="app-main">{renderContent()}</main>
     </div>
   );
 }

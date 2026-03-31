@@ -60,10 +60,10 @@ export interface ReportTemplate {
   id: string;
   name: string;
   description: string;
-  reportType: '结业报告' | '学业规划';
+  reportType: '结业报告' | '学业规划' | string;
   scene: string;
   updatedAt: string;
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | string;
   sections: ReportTemplateSection[];
 }
 

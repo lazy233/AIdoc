@@ -147,6 +147,16 @@ class OperationStatus(BaseModel):
   message: str
 
 
+class UploadedFileInfo(BaseModel):
+  file_name: str
+  file_path: str
+  file_size: int
+  mime_type: str | None = None
+  file_type: str | None = None
+  description: str | None = None
+  created_at: datetime
+
+
 class StudentLearningProfilePayload(BaseModel):
   strength_subjects: str | None = None
   international_score: str | None = None

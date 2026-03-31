@@ -3,15 +3,37 @@ interface StatusPillProps {
 }
 
 function resolveTone(status: string) {
-  if (status.includes('完成') || status.includes('就绪') || status.includes('同步')) {
+  const normalized = status.toLowerCase();
+
+  if (
+    normalized.includes('completed') ||
+    normalized.includes('published') ||
+    normalized.includes('success') ||
+    normalized.includes('完成') ||
+    normalized.includes('已发布') ||
+    normalized.includes('成功')
+  ) {
     return 'success';
   }
 
-  if (status.includes('中') || status.includes('排队') || status.includes('自动')) {
+  if (
+    normalized.includes('pending') ||
+    normalized.includes('processing') ||
+    normalized.includes('queue') ||
+    normalized.includes('draft') ||
+    normalized.includes('处理中') ||
+    normalized.includes('排队') ||
+    normalized.includes('草稿')
+  ) {
     return 'processing';
   }
 
-  if (status.includes('待') || status.includes('失败')) {
+  if (
+    normalized.includes('failed') ||
+    normalized.includes('warning') ||
+    normalized.includes('error') ||
+    normalized.includes('失败')
+  ) {
     return 'warning';
   }
 

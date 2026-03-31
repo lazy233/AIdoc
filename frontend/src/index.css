@@ -1,6 +1,6 @@
 :root {
-  color: #111827;
-  background: #f7f3eb;
+  color: #303133;
+  background: #f2f4f6;
   font-family:
     'Alibaba PuHuiTi 3.0',
     'Source Han Sans SC',
@@ -13,16 +13,42 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --page-bg: #f7f3eb;
-  --surface: #fffdf8;
-  --surface-alt: #fff8ec;
-  --ink: #131a24;
-  --muted: #64748b;
-  --line: rgba(15, 23, 42, 0.08);
-  --accent: #0f766e;
-  --warm: #ef7f45;
-  --shadow: 0 20px 40px rgba(15, 23, 42, 0.07);
-  --shadow-sm: 0 12px 24px rgba(15, 23, 42, 0.06);
+
+  --page-bg: #f2f4f6;
+  --surface: #ffffff;
+  --surface-alt: #f8fafc;
+  --surface-soft: #f5f7fa;
+  --ink: #303133;
+  --text: #303133;
+  --muted: #606266;
+  --muted-soft: #909399;
+  --line: #ebeef5;
+  --line-strong: #dcdfe6;
+  --accent: #e8b724;
+  --accent-hover: #d2a61f;
+  --warm: #e8b724;
+  --warm-bright: #f1cb52;
+  --accent-ink: #a37700;
+  --accent-soft: rgba(232, 183, 36, 0.14);
+  --accent-soft-2: rgba(232, 183, 36, 0.2);
+  --accent-soft-3: rgba(232, 183, 36, 0.08);
+  --accent-ring: rgba(232, 183, 36, 0.28);
+  --accent-ring-soft: rgba(232, 183, 36, 0.12);
+  --secondary: #5b7c9a;
+  --secondary-hover: #4d6d8a;
+  --secondary-soft: rgba(91, 124, 154, 0.12);
+  --secondary-ring: rgba(91, 124, 154, 0.24);
+  --primary-fill: linear-gradient(180deg, #eec341 0%, #e8b724 100%);
+  --primary-fill-solid: #e8b724;
+  --on-primary: #303133;
+  --shadow: 0 8px 24px rgba(31, 35, 41, 0.06);
+  --shadow-sm: 0 2px 8px rgba(31, 35, 41, 0.05);
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-pill: 999px;
 }
 
 * {
@@ -39,9 +65,9 @@ body {
   min-height: 100vh;
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, rgba(245, 158, 11, 0.12), transparent 18%),
-    radial-gradient(circle at 85% 10%, rgba(15, 118, 110, 0.15), transparent 20%),
-    linear-gradient(180deg, #fbfaf7 0%, #f7f3eb 100%);
+    radial-gradient(ellipse 60% 40% at 0% 0%, rgba(232, 183, 36, 0.09), transparent 55%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(91, 124, 154, 0.08), transparent 52%),
+    linear-gradient(180deg, #f7f8fa 0%, var(--page-bg) 100%);
 }
 
 button,

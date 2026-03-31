@@ -128,3 +128,163 @@
       at EnvironmentPluginContainer.transform (file:///C:/Users/22060/Desktop/lumist/%E6%8A%A5%E5%91%8A%E7%94%9F%E6%88%90/frontend/node_modules/vite/dist/node/chunks/node.js:30048:51)
       at async loadAndTransform (file:///C:/Users/22060/Desktop/lumist/%E6%8A%A5%E5%91%8A%E7%94%9F%E6%88%90/frontend/node_modules/vite/dist/node/chunks/node.js:24177:26)
       at async viteTransformMiddleware (file:///C:/Users/22060/Desktop/lumist/%E6%8A%A5%E5%91%8A%E7%94%9F%E6%88%90/frontend/node_modules/vite/dist/node/chunks/node.js:24986:20)
+[2m13:39:42[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m13:40:11[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /src/components/TopNav.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m13:40:26[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /src/components/TemplateCard.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m13:40:42[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /src/sections/HistoryView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m13:41:03[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /src/sections/TemplateCenterView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m13:41:31[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /src/sections/WorkbenchView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m13:48:10[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /src/sections/WorkbenchView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m13:53:11[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /src/sections/WorkbenchView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m13:53:26[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: Request failed: 422
+[39m > requestJson src/services/api.ts:152:10
+    150 |  
+    151 |    if (!response.ok) {
+    152 |      throw new Error(`Request failed: ${response.status}`);
+        |            ^
+    153 |    }
+    154 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m13:53:28[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: Request failed: 422
+[39m > requestJson src/services/api.ts:152:10
+    150 |  
+    151 |    if (!response.ok) {
+    152 |      throw new Error(`Request failed: ${response.status}`);
+        |            ^
+    153 |    }
+    154 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m13:53:29[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: Request failed: 422
+[39m > requestJson src/services/api.ts:152:10
+    150 |  
+    151 |    if (!response.ok) {
+    152 |      throw new Error(`Request failed: ${response.status}`);
+        |            ^
+    153 |    }
+    154 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m13:53:29[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: Request failed: 422
+[39m > requestJson src/services/api.ts:152:10
+    150 |  
+    151 |    if (!response.ok) {
+    152 |      throw new Error(`Request failed: ${response.status}`);
+        |            ^
+    153 |    }
+    154 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m13:53:29[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: Request failed: 422
+[39m > requestJson src/services/api.ts:152:10
+    150 |  
+    151 |    if (!response.ok) {
+    152 |      throw new Error(`Request failed: ${response.status}`);
+        |            ^
+    153 |    }
+    154 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m13:53:30[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: Request failed: 422
+[39m > requestJson src/services/api.ts:152:10
+    150 |  
+    151 |    if (!response.ok) {
+    152 |      throw new Error(`Request failed: ${response.status}`);
+        |            ^
+    153 |    }
+    154 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m13:53:30[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: Request failed: 422
+[39m > requestJson src/services/api.ts:152:10
+    150 |  
+    151 |    if (!response.ok) {
+    152 |      throw new Error(`Request failed: ${response.status}`);
+        |            ^
+    153 |    }
+    154 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m13:53:31[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: Request failed: 422
+[39m > requestJson src/services/api.ts:152:10
+    150 |  
+    151 |    if (!response.ok) {
+    152 |      throw new Error(`Request failed: ${response.status}`);
+        |            ^
+    153 |    }
+    154 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m14:47:24[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: {"detail":[{"type":"date_from_datetime_inexact","loc":["body","service_start_date"],"msg":"Datetimes provided to dates should have zero time - e.g. be exact dates","input":"1","url":"https://errors.pydantic.dev/2.12/v/date_from_datetime_inexact"}]}
+[39m > requestJson src/services/api.ts:389:10
+    387 |    if (!response.ok) {
+    388 |      const text = await response.text();
+    389 |      throw new Error(text || `Request failed: ${response.status}`);
+        |            ^
+    390 |    }
+    391 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m14:47:54[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: {"detail":[{"type":"date_from_datetime_inexact","loc":["body","service_start_date"],"msg":"Datetimes provided to dates should have zero time - e.g. be exact dates","input":"1","url":"https://errors.pydantic.dev/2.12/v/date_from_datetime_inexact"}]}
+[39m > requestJson src/services/api.ts:389:10
+    387 |    if (!response.ok) {
+    388 |      const text = await response.text();
+    389 |      throw new Error(text || `Request failed: ${response.status}`);
+        |            ^
+    390 |    }
+    391 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m14:47:54[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: {"detail":[{"type":"date_from_datetime_inexact","loc":["body","service_start_date"],"msg":"Datetimes provided to dates should have zero time - e.g. be exact dates","input":"1","url":"https://errors.pydantic.dev/2.12/v/date_from_datetime_inexact"}]}
+[39m > requestJson src/services/api.ts:389:10
+    387 |    if (!response.ok) {
+    388 |      const text = await response.text();
+    389 |      throw new Error(text || `Request failed: ${response.status}`);
+        |            ^
+    390 |    }
+    391 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m14:47:55[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: {"detail":[{"type":"date_from_datetime_inexact","loc":["body","service_start_date"],"msg":"Datetimes provided to dates should have zero time - e.g. be exact dates","input":"1","url":"https://errors.pydantic.dev/2.12/v/date_from_datetime_inexact"}]}
+[39m > requestJson src/services/api.ts:389:10
+    387 |    if (!response.ok) {
+    388 |      const text = await response.text();
+    389 |      throw new Error(text || `Request failed: ${response.status}`);
+        |            ^
+    390 |    }
+    391 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m14:48:00[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: {"detail":[{"type":"date_from_datetime_inexact","loc":["body","service_start_date"],"msg":"Datetimes provided to dates should have zero time - e.g. be exact dates","input":"1","url":"https://errors.pydantic.dev/2.12/v/date_from_datetime_inexact"}]}
+[39m > requestJson src/services/api.ts:389:10
+    387 |    if (!response.ok) {
+    388 |      const text = await response.text();
+    389 |      throw new Error(text || `Request failed: ${response.status}`);
+        |            ^
+    390 |    }
+    391 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m14:48:27[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /src/sections/WorkbenchView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m14:48:52[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to load url /src/sections/WorkbenchView.tsx (resolved id: C:/Users/22060/Desktop/lumist/报告生成/frontend/src/sections/WorkbenchView.tsx) in C:/Users/22060/Desktop/lumist/报告生成/frontend/src/App.tsx. Does the file exist?
+[2m14:57:12[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: {"detail":[{"type":"date_from_datetime_parsing","loc":["body","service_start_date"],"msg":"Input should be a valid date or datetime, input is too short","input":"Q","ctx":{"error":"input is too short"},"url":"https://errors.pydantic.dev/2.12/v/date_from_datetime_parsing"}]}
+[39m > requestJson src/services/api.ts:389:10
+    387 |    if (!response.ok) {
+    388 |      const text = await response.text();
+    389 |      throw new Error(text || `Request failed: ${response.status}`);
+        |            ^
+    390 |    }
+    391 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
+[2m14:57:29[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: {"detail":[{"type":"date_from_datetime_parsing","loc":["body","service_start_date"],"msg":"Input should be a valid date or datetime, input is too short","input":"Q","ctx":{"error":"input is too short"},"url":"https://errors.pydantic.dev/2.12/v/date_from_datetime_parsing"}]}
+[39m > requestJson src/services/api.ts:389:10
+    387 |    if (!response.ok) {
+    388 |      const text = await response.text();
+    389 |      throw new Error(text || `Request failed: ${response.status}`);
+        |            ^
+    390 |    }
+    391 |  
+ > handleSave src/sections/DataManagementView.tsx:204:25
+
