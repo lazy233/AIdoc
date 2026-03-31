@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+python-pptx
+pydantic-settings
+python-multipart
+psycopg[binary]

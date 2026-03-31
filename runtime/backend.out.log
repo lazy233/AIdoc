@@ -1,0 +1,32 @@
+INFO:     127.0.0.1:51416 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64570 - "GET /api/workbench HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:64571 - "GET /api/templates HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:54435 - "GET /api/templates HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:54437 - "GET /api/history HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:54434 - "GET /api/workbench HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:54436 - "GET /api/data HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50561 - "GET /api/workbench HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:54452 - "GET /api/history HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:49677 - "GET /api/data HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:54450 - "GET /api/templates HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:57904 - "GET /api/templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57905 - "GET /api/data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57906 - "GET /api/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50444 - "GET /api/templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62762 - "GET /api/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52636 - "GET /api/data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57903 - "GET /api/workbench HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62357 - "GET /api/workbench HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62038 - "GET /api/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62044 - "GET /api/report-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62037 - "GET /api/data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62047 - "GET /api/ppt-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62051 - "GET /api/histories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62054 - "GET /api/workbench HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62063 - "GET /api/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56153 - "GET /api/data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56158 - "GET /api/templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58066 - "GET /api/workbench HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49685 - "GET /api/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49692 - "GET /api/histories HTTP/1.1" 200 OK

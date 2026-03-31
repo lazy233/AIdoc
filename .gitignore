@@ -1,0 +1,8 @@
+frontend/node_modules
+frontend/dist
+backend/.venv
+backend/.env
+backend/__pycache__
+backend/**/*.pyc
+backend/storage/generated/*.pptx
+backend/storage/generated/*.txt

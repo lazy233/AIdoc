@@ -1,0 +1,11 @@
+{
+  "name": "graduation-report-studio",
+  "private": true,
+  "scripts": {
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "backend:dev": "python -m uvicorn app.main:app --reload --app-dir backend",
+    "backend:check": "python -m compileall backend/app",
+    "backend:init-db": "python backend/scripts/init_db.py"
+  }
+}
