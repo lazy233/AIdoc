@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from itertools import cycle
 from typing import Any
 from uuid import UUID
@@ -74,6 +74,26 @@ def _stringify_fields(row: dict[str, Any], *keys: str) -> dict[str, Any]:
 
 
 class PostgresRepository:
+  def ensure_generation_chapter_logs_table(self) -> None:
+    with get_connection() as conn:
+      with conn.transaction(), conn.cursor() as cursor:
+        cursor.execute(
+          '''
+          CREATE TABLE IF NOT EXISTS generation_chapter_logs (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            history_id UUID NOT NULL REFERENCES generation_histories(id) ON DELETE CASCADE,
+            chapter_order INTEGER NOT NULL,
+            template_section_index INTEGER NOT NULL,
+            template_page_count INTEGER NOT NULL DEFAULT 0,
+            llm_hit_count INTEGER NOT NULL DEFAULT 0,
+            fallback_count INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'completed',
+            error_message TEXT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+          )
+          '''
+        )
+
   def _fetchone(self, query: str, params: tuple[Any, ...] = ()) -> dict[str, Any] | None:
     with get_connection() as conn:
       with conn.cursor() as cursor:
@@ -481,6 +501,18 @@ class PostgresRepository:
   def get_ppt_template(self, template_id: str) -> PptTemplateDetail | None:
     with get_connection() as conn:
       return self._fetch_ppt_template_detail_in_conn(conn, template_id)
+
+  def update_ppt_template_cover(self, template_id: str, cover_image_path: str | None) -> None:
+    with get_connection() as conn:
+      with conn.transaction(), conn.cursor() as cursor:
+        cursor.execute(
+          '''
+          UPDATE ppt_templates
+          SET cover_image_path = %s
+          WHERE id = %s
+          ''',
+          (cover_image_path, template_id),
+        )
 
   def _replace_ppt_template_nested(self, conn, template_id: str, payload: PptTemplatePayload) -> None:
     with conn.cursor() as cursor:
@@ -1216,6 +1248,47 @@ class PostgresRepository:
       with conn.transaction(), conn.cursor() as cursor:
         cursor.execute('DELETE FROM generation_histories WHERE id = %s', (history_id,))
         return cursor.rowcount > 0
+
+  def create_generation_chapter_logs(self, history_id: str, rows: list[dict[str, Any]]) -> None:
+    self.ensure_generation_chapter_logs_table()
+    if not rows:
+      return
+    with get_connection() as conn:
+      with conn.transaction(), conn.cursor() as cursor:
+        for row in rows:
+          cursor.execute(
+            '''
+            INSERT INTO generation_chapter_logs (
+              history_id, chapter_order, template_section_index, template_page_count,
+              llm_hit_count, fallback_count, status, error_message
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ''',
+            (
+              _valid_uuid(history_id),
+              int(row.get('chapter_order') or 0),
+              int(row.get('template_section_index') or 0),
+              int(row.get('template_page_count') or 0),
+              int(row.get('llm_hit_count') or 0),
+              int(row.get('fallback_count') or 0),
+              row.get('status') or 'completed',
+              row.get('error_message'),
+            ),
+          )
+
+  def list_generation_chapter_logs(self, history_id: str):
+    from app.models.schemas import GenerationChapterLogItem
+
+    self.ensure_generation_chapter_logs_table()
+    rows = self._fetchall(
+      '''
+      SELECT *
+      FROM generation_chapter_logs
+      WHERE history_id = %s
+      ORDER BY chapter_order ASC, created_at ASC
+      ''',
+      (_valid_uuid(history_id),),
+    )
+    return [GenerationChapterLogItem(**_stringify_fields(row, 'id', 'history_id')) for row in rows]
 
   def build_workbench_data(self) -> WorkbenchData:
     student_count_row = self._fetchone('SELECT COUNT(*) AS total FROM students')

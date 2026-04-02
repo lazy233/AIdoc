@@ -2,16 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { SectionHeader } from '../components/SectionHeader';
 import { TemplateCard } from '../components/TemplateCard';
-import {
-  createPptTemplate,
-  deletePptTemplate,
-  getPptTemplate,
-  listPptTemplates,
-  updatePptTemplate,
-  uploadFile,
-  type PptTemplateDetailApi,
-  type PptTemplatePayloadApi,
-} from '../services/api';
+import { deletePptTemplate, getPptTemplate, listPptTemplates, uploadPptTemplate, type PptTemplateDetailApi } from '../services/api';
 import type { TabKey, TemplateCenterData } from '../types';
 
 interface TemplateCenterViewProps {
@@ -21,120 +12,11 @@ interface TemplateCenterViewProps {
   onRefresh: () => void;
 }
 
-type PptDialogMode = 'create' | 'edit';
-
-interface PptTemplateDraft {
-  id?: string;
-  name: string;
-  category: string;
-  status: string;
-  source_file_name: string;
-  source_file_path: string;
-  page_count: string;
-  aspect_ratio: string;
-  theme_name: string;
-  parse_status: string;
-  parse_error: string;
-  template_version: string;
-  uploadedFile?: File | null;
-  sections: PptTemplateDetailApi['sections'];
-  pages: PptTemplateDetailApi['pages'];
-  outline_json: PptTemplateDetailApi['outline_json'];
-  pages_json: PptTemplateDetailApi['pages_json'];
-  components_json: PptTemplateDetailApi['components_json'];
-  style_tokens_json: PptTemplateDetailApi['style_tokens_json'];
-  slot_bindings_json: PptTemplateDetailApi['slot_bindings_json'];
-  parsed_at?: string | null;
-  file_size?: number | null;
-  cover_image_path?: string | null;
-}
-
-function createEmptyDraft(): PptTemplateDraft {
-  return {
-    name: '',
-    category: '教学培训',
-    status: 'draft',
-    source_file_name: '',
-    source_file_path: '',
-    page_count: '0',
-    aspect_ratio: '16:9',
-    theme_name: '',
-    parse_status: 'pending',
-    parse_error: '',
-    template_version: 'v1',
-    uploadedFile: null,
-    sections: [],
-    pages: [],
-    outline_json: [],
-    pages_json: [],
-    components_json: [],
-    style_tokens_json: {},
-    slot_bindings_json: {},
-    parsed_at: null,
-    file_size: null,
-    cover_image_path: null,
-  };
-}
-
-function fromDetail(detail: PptTemplateDetailApi): PptTemplateDraft {
-  return {
-    id: detail.id,
-    name: detail.name,
-    category: detail.category ?? '',
-    status: detail.status,
-    source_file_name: detail.source_file_name ?? '',
-    source_file_path: detail.source_file_path,
-    page_count: String(detail.page_count ?? 0),
-    aspect_ratio: detail.aspect_ratio ?? '',
-    theme_name: detail.theme_name ?? '',
-    parse_status: detail.parse_status,
-    parse_error: detail.parse_error ?? '',
-    template_version: detail.template_version ?? '',
-    uploadedFile: null,
-    sections: detail.sections,
-    pages: detail.pages,
-    outline_json: detail.outline_json,
-    pages_json: detail.pages_json,
-    components_json: detail.components_json,
-    style_tokens_json: detail.style_tokens_json,
-    slot_bindings_json: detail.slot_bindings_json,
-    parsed_at: detail.parsed_at ?? null,
-    file_size: detail.file_size ?? null,
-    cover_image_path: detail.cover_image_path ?? null,
-  };
-}
-
-function toPayload(draft: PptTemplateDraft): PptTemplatePayloadApi {
-  return {
-    name: draft.name,
-    category: draft.category || null,
-    status: draft.status,
-    source_file_name: draft.source_file_name || null,
-    source_file_path: draft.source_file_path,
-    cover_image_path: draft.cover_image_path ?? null,
-    file_size: draft.file_size ?? null,
-    page_count: Number(draft.page_count || 0),
-    aspect_ratio: draft.aspect_ratio || null,
-    theme_name: draft.theme_name || null,
-    template_version: draft.template_version || null,
-    parse_status: draft.parse_status,
-    parse_error: draft.parse_error || null,
-    outline_json: draft.outline_json,
-    pages_json: draft.pages_json,
-    components_json: draft.components_json,
-    style_tokens_json: draft.style_tokens_json,
-    slot_bindings_json: draft.slot_bindings_json,
-    parsed_at: draft.parsed_at ?? null,
-    sections: draft.sections,
-    pages: draft.pages,
-  };
-}
-
 export function TemplateCenterView({ data, onNavigate, onOpenReportTemplates, onRefresh }: TemplateCenterViewProps) {
   const [selectedCategory, setSelectedCategory] = useState('全部');
   const [pptTemplates, setPptTemplates] = useState<PptTemplateDetailApi[]>([]);
-  const [dialogMode, setDialogMode] = useState<PptDialogMode>('create');
-  const [draft, setDraft] = useState<PptTemplateDraft | null>(null);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadTemplates = async () => {
@@ -165,41 +47,20 @@ export function TemplateCenterView({ data, onNavigate, onOpenReportTemplates, on
   }, [pptTemplates, selectedCategory]);
 
   const handleOpenCreate = () => {
-    setDialogMode('create');
-    setDraft(createEmptyDraft());
-  };
-
-  const handleOpenEdit = async (templateId: string) => {
-    setDialogMode('edit');
-    setDraft(fromDetail(await getPptTemplate(templateId)));
+    setUploadedFile(null);
+    setIsUploadOpen(true);
   };
 
   const handleSave = async () => {
-    if (!draft || !draft.name.trim() || (!draft.source_file_path && !draft.uploadedFile)) {
+    if (!uploadedFile) {
       return;
     }
 
     setIsSubmitting(true);
     try {
-      let nextDraft = draft;
-      if (draft.uploadedFile) {
-        const uploaded = await uploadFile(draft.uploadedFile, 'template', draft.name);
-        nextDraft = {
-          ...draft,
-          source_file_name: uploaded.file_name,
-          source_file_path: uploaded.file_path,
-          file_size: uploaded.file_size,
-          uploadedFile: null,
-        };
-      }
-
-      if (dialogMode === 'create') {
-        await createPptTemplate(toPayload(nextDraft));
-      } else if (nextDraft.id) {
-        await updatePptTemplate(nextDraft.id, toPayload(nextDraft));
-      }
-
-      setDraft(null);
+      await uploadPptTemplate(uploadedFile);
+      setUploadedFile(null);
+      setIsUploadOpen(false);
       await loadTemplates();
       onRefresh();
     } finally {
@@ -227,7 +88,7 @@ export function TemplateCenterView({ data, onNavigate, onOpenReportTemplates, on
               <span>{pptTemplates.length}</span>
             </div>
             <button type="button" className="accent-button" onClick={handleOpenCreate}>
-              新建 PPT 模板
+              上传 PPT 模板
             </button>
           </article>
 
@@ -285,7 +146,7 @@ export function TemplateCenterView({ data, onNavigate, onOpenReportTemplates, on
           action={
             <button type="button" className="soft-button" onClick={handleOpenCreate}>
               <Icon name="upload" className="button-icon" />
-              新建模板
+              上传模板
             </button>
           }
         />
@@ -313,21 +174,19 @@ export function TemplateCenterView({ data, onNavigate, onOpenReportTemplates, on
                   item={{
                     id: template.id,
                     title: template.name,
-                    description: template.theme_name ?? '',
+                    description: template.source_file_name ?? template.theme_name ?? '',
                     category: template.category ?? '未分类',
-                    tags: [template.aspect_ratio ?? '16:9', template.parse_status],
+                    tags: [template.aspect_ratio ?? '待解析', template.parse_status],
                     slides: template.page_count,
                     usageCount: 0,
                     colorA: '#153b5c',
                     colorB: '#4ad1c8',
+                    previewImageUrl: template.cover_image_path ? `/storage/${template.cover_image_path}` : undefined,
                   }}
                   buttonLabel="使用"
                   onAction={() => onNavigate('workbench')}
                 />
                 <div className="history-actions" style={{ marginTop: 12 }}>
-                  <button type="button" className="soft-button" onClick={() => void handleOpenEdit(template.id)}>
-                    编辑
-                  </button>
                   <button type="button" className="soft-button" onClick={() => void handleDelete(template.id)}>
                     删除
                   </button>
@@ -338,75 +197,33 @@ export function TemplateCenterView({ data, onNavigate, onOpenReportTemplates, on
         )}
       </article>
 
-      {draft ? (
-        <div className="modal-backdrop" onClick={() => setDraft(null)}>
+      {isUploadOpen ? (
+        <div className="modal-backdrop" onClick={() => setIsUploadOpen(false)}>
           <div className="modal-panel" onClick={(event) => event.stopPropagation()}>
             <div className="modal-head">
-              <strong>{dialogMode === 'create' ? '新建 PPT 模板' : '编辑 PPT 模板'}</strong>
-              <button type="button" className="modal-close" onClick={() => setDraft(null)}>
+              <strong>上传 PPT 模板</strong>
+              <button type="button" className="modal-close" onClick={() => setIsUploadOpen(false)}>
                 ×
               </button>
             </div>
 
             <div className="report-template-form-grid">
-              <label className="report-template-field">
-                <span>模板名称</span>
-                <input value={draft.name} onChange={(event) => setDraft((current) => (current ? { ...current, name: event.target.value } : current))} />
-              </label>
-
-              <label className="report-template-field">
-                <span>分类</span>
-                <input value={draft.category} onChange={(event) => setDraft((current) => (current ? { ...current, category: event.target.value } : current))} />
-              </label>
-
-              <label className="report-template-field">
-                <span>状态</span>
-                <select value={draft.status} onChange={(event) => setDraft((current) => (current ? { ...current, status: event.target.value } : current))}>
-                  <option value="draft">draft</option>
-                  <option value="published">published</option>
-                </select>
-              </label>
-
-              <label className="report-template-field">
-                <span>页数</span>
-                <input value={draft.page_count} onChange={(event) => setDraft((current) => (current ? { ...current, page_count: event.target.value } : current))} />
-              </label>
-
-              <label className="report-template-field">
-                <span>宽高比</span>
-                <input value={draft.aspect_ratio} onChange={(event) => setDraft((current) => (current ? { ...current, aspect_ratio: event.target.value } : current))} />
-              </label>
-
-              <label className="report-template-field">
-                <span>主题名</span>
-                <input value={draft.theme_name} onChange={(event) => setDraft((current) => (current ? { ...current, theme_name: event.target.value } : current))} />
-              </label>
-
               <label className="report-template-field is-full">
                 <span>模板文件</span>
-                <input
-                  type="file"
-                  accept=".ppt,.pptx"
-                  onChange={(event) =>
-                    setDraft((current) =>
-                      current ? { ...current, uploadedFile: event.target.files?.[0] ?? null } : current,
-                    )
-                  }
-                />
+                <input type="file" accept=".ppt,.pptx" onChange={(event) => setUploadedFile(event.target.files?.[0] ?? null)} />
               </label>
 
-              <label className="report-template-field is-full">
-                <span>文件路径</span>
-                <input value={draft.source_file_path} onChange={(event) => setDraft((current) => (current ? { ...current, source_file_path: event.target.value } : current))} />
-              </label>
+              <div className="report-template-empty">
+                只需上传 PPT 文件。模板名称、服务器文件地址、页数、宽高比等基础信息会由后端自动解析并写入数据库。
+              </div>
             </div>
 
             <div className="modal-actions">
-              <button type="button" className="soft-button" onClick={() => setDraft(null)}>
+              <button type="button" className="soft-button" onClick={() => setIsUploadOpen(false)}>
                 取消
               </button>
-              <button type="button" className="accent-button" onClick={() => void handleSave()} disabled={isSubmitting}>
-                保存
+              <button type="button" className="accent-button" onClick={() => void handleSave()} disabled={isSubmitting || !uploadedFile}>
+                上传并解析
               </button>
             </div>
           </div>

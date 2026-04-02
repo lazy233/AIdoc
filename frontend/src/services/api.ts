@@ -349,6 +349,29 @@ export interface GenerationHistoryDetailApi {
   created_at: string;
 }
 
+export interface GenerationChapterLogItemApi {
+  id: string;
+  history_id: string;
+  chapter_order: number;
+  template_section_index: number;
+  template_page_count: number;
+  llm_hit_count: number;
+  fallback_count: number;
+  status: string;
+  error_message?: string | null;
+  created_at: string;
+}
+
+export interface GenerationChapterLogBriefApi {
+  chapter_order: number;
+  template_section_index: number;
+  template_page_count: number;
+  llm_hit_count: number;
+  fallback_count: number;
+  status: string;
+  error_message?: string | null;
+}
+
 export interface GenerationHistoryPayloadApi {
   project_id?: string | null;
   student_id?: string | null;
@@ -358,6 +381,19 @@ export interface GenerationHistoryPayloadApi {
   output_format?: string | null;
   status?: string | null;
   output_file_path?: string | null;
+}
+
+export interface ProjectGenerationResponseApi {
+  task_id: string;
+  project_id: string;
+  history_id: string;
+  status: string;
+  output_file_path: string;
+  output_file_name: string;
+  slide_count: number;
+  chapter_logs: string[];
+  chapter_log_items: GenerationChapterLogBriefApi[];
+  message: string;
 }
 
 export interface UploadedFileApi {
@@ -378,6 +414,31 @@ function ensureHeaders(init?: RequestInit) {
   return headers;
 }
 
+function errorMessageFromApiBody(text: string, status: number): string {
+  const trimmed = text?.trim();
+  if (!trimmed) {
+    return `Request failed: ${status}`;
+  }
+  try {
+    const j = JSON.parse(trimmed) as { detail?: string | Array<{ msg?: string; type?: string }> };
+    if (typeof j.detail === 'string') {
+      return j.detail;
+    }
+    if (Array.isArray(j.detail) && j.detail.length > 0) {
+      return j.detail
+        .map((item) =>
+          typeof item === 'object' && item !== null && 'msg' in item
+            ? String((item as { msg: string }).msg)
+            : JSON.stringify(item),
+        )
+        .join('；');
+    }
+  } catch {
+    /* 非 JSON */
+  }
+  return trimmed.length > 1200 ? `${trimmed.slice(0, 1200)}…` : trimmed;
+}
+
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -386,7 +447,7 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `Request failed: ${response.status}`);
+    throw new Error(errorMessageFromApiBody(text, response.status));
   }
 
   return (await response.json()) as T;
@@ -528,6 +589,16 @@ export function createPptTemplate(payload: PptTemplatePayloadApi) {
   });
 }
 
+export function uploadPptTemplate(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return requestJson<PptTemplateDetailApi>('/ppt-templates/upload', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
 export function updatePptTemplate(templateId: string, payload: PptTemplatePayloadApi) {
   return requestJson<PptTemplateDetailApi>(`/ppt-templates/${templateId}`, {
     method: 'PUT',
@@ -556,6 +627,18 @@ export function createProject(payload: ProjectPayloadApi) {
   });
 }
 
+export interface LlmBindingApplicationResultApi {
+  project: ProjectDetailApi;
+  applied: boolean;
+  skipped_reason?: string | null;
+}
+
+export function applyLlmChapterBindings(projectId: string) {
+  return requestJson<LlmBindingApplicationResultApi>(`/projects/${projectId}/llm-bindings`, {
+    method: 'POST',
+  });
+}
+
 export function updateProject(projectId: string, payload: ProjectPayloadApi) {
   return requestJson<ProjectDetailApi>(`/projects/${projectId}`, {
     method: 'PUT',
@@ -577,10 +660,20 @@ export function getHistoryEntry(historyId: string) {
   return requestJson<GenerationHistoryDetailApi>(`/histories/${historyId}`);
 }
 
+export function listHistoryChapterLogs(historyId: string) {
+  return requestJson<GenerationChapterLogItemApi[]>(`/histories/${historyId}/chapter-logs`);
+}
+
 export function createHistoryEntry(payload: GenerationHistoryPayloadApi) {
   return requestJson<GenerationHistoryDetailApi>('/histories', {
     method: 'POST',
     body: JSON.stringify(payload),
+  });
+}
+
+export function generateProjectPpt(projectId: string) {
+  return requestJson<ProjectGenerationResponseApi>(`/generation/projects/${projectId}`, {
+    method: 'POST',
   });
 }
 

@@ -15,15 +15,21 @@ export function TemplateCard({ item, buttonLabel = '立即使用', onAction }: T
           <span className="template-chip">{item.category}</span>
           {item.premium ? <span className="template-chip is-premium">Pro</span> : null}
         </div>
-        <div className="template-preview-canvas">
-          <span className="template-preview-line is-wide" />
-          <span className="template-preview-line" />
-          <span className="template-preview-line is-short" />
-          <div className="template-preview-blocks">
-            <span />
-            <span />
+        {item.previewImageUrl ? (
+          <div className="template-preview-image-shell">
+            <img className="template-preview-image" src={item.previewImageUrl} alt={`${item.title} 首页预览`} loading="lazy" />
           </div>
-        </div>
+        ) : (
+          <div className="template-preview-canvas">
+            <span className="template-preview-line is-wide" />
+            <span className="template-preview-line" />
+            <span className="template-preview-line is-short" />
+            <div className="template-preview-blocks">
+              <span />
+              <span />
+            </div>
+          </div>
+        )}
         <div className="template-preview-copy">
           <strong>{item.title}</strong>
           {item.description ? <p>{item.description}</p> : null}

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
 from app.models.schemas import (
+  GenerationChapterLogItem,
   GenerationHistoryDetail,
   GenerationHistoryListItem,
   GenerationHistoryPayload,
@@ -34,6 +35,14 @@ def get_history_entry(history_id: str) -> GenerationHistoryDetail:
   if not history:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='History entry not found')
   return history
+
+
+@router.get('/histories/{history_id}/chapter-logs', response_model=list[GenerationChapterLogItem])
+def list_history_chapter_logs(history_id: str) -> list[GenerationChapterLogItem]:
+  history = postgres_repository.get_history_entry(history_id)
+  if not history:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='History entry not found')
+  return postgres_repository.list_generation_chapter_logs(history_id)
 
 
 @router.put('/histories/{history_id}', response_model=GenerationHistoryDetail)

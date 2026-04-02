@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useState } from 'react';
+import { startTransition, useCallback, useEffect, useState } from 'react';
 import './App.css';
 import { TopNav } from './components/TopNav';
 import { getDataManagement, getHistory, getTemplateCenter, getWorkbench, listReportTemplates } from './services/api';
@@ -18,7 +18,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadAll = async () => {
+  const loadAll = useCallback(async () => {
     const [workbench, templateCenter, dataManagement, history, realReportTemplates] = await Promise.all([
       getWorkbench(),
       getTemplateCenter(),
@@ -38,14 +38,14 @@ function App() {
       setLoadError(null);
       setIsLoading(false);
     });
-  };
+  }, []);
 
   useEffect(() => {
     void loadAll().catch((error: unknown) => {
       setLoadError(error instanceof Error ? error.message : '加载失败');
       setIsLoading(false);
     });
-  }, []);
+  }, [loadAll]);
 
   const activeTab: TabKey = activeRoute === 'reportTemplates' ? 'templates' : activeRoute;
 
@@ -110,7 +110,6 @@ function App() {
           onBack={() => setActiveRoute('templates')}
           onTemplatesChange={(templates) => {
             setReportTemplates(templates);
-            void loadAll();
           }}
         />
       );
@@ -123,7 +122,7 @@ function App() {
           students={appData.dataManagement.students}
           reportTemplates={reportTemplates}
           onNavigate={setActiveRoute}
-          onRefresh={() => void loadAll()}
+          onRefresh={loadAll}
         />
       );
     }
@@ -134,7 +133,7 @@ function App() {
           data={{ ...appData.templateCenter, reportTemplates }}
           onNavigate={setActiveRoute}
           onOpenReportTemplates={() => setActiveRoute('reportTemplates')}
-          onRefresh={() => void loadAll()}
+          onRefresh={loadAll}
         />
       );
     }
@@ -143,7 +142,7 @@ function App() {
       return <DataManagementView data={appData.dataManagement} onNavigate={setActiveRoute} />;
     }
 
-    return <HistoryView data={appData.history} onNavigate={setActiveRoute} onRefresh={() => void loadAll()} />;
+    return <HistoryView data={appData.history} onNavigate={setActiveRoute} onRefresh={loadAll} />;
   };
 
   return (

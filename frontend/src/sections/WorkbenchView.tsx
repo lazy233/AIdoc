@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import {
-  createHistoryEntry,
+  applyLlmChapterBindings,
   createProject,
   deleteProject,
+  generateProjectPpt,
   getProject,
   listPptTemplates,
   listProjects,
   updateProject,
   uploadFile,
+  type GenerationChapterLogBriefApi,
   type PptTemplateListItemApi,
   type ProjectDetailApi,
   type ProjectListItemApi,
@@ -134,6 +136,46 @@ function parseFieldInput(value: string) {
     .filter(Boolean);
 }
 
+/** 只更新某一 binding_group，保留其它分组，避免多行编辑时整页 bindings 被覆盖导致跳动或丢数据 */
+function replaceBindingGroup(
+  bindings: ProjectPageApi['bindings'],
+  groupName: string,
+  fieldNames: string[],
+): ProjectPageApi['bindings'] {
+  const gn = groupName || '章节数据';
+  let inserted = false;
+  const next: ProjectPageApi['bindings'] = [];
+  for (const b of bindings) {
+    const g = b.binding_group || '章节数据';
+    if (g === gn) {
+      if (!inserted) {
+        fieldNames.forEach((fieldName, index) => {
+          next.push({
+            id: null,
+            binding_group: gn,
+            field_name: fieldName,
+            field_order: index + 1,
+          });
+        });
+        inserted = true;
+      }
+      continue;
+    }
+    next.push(b);
+  }
+  if (!inserted) {
+    fieldNames.forEach((fieldName, index) => {
+      next.push({
+        id: null,
+        binding_group: gn,
+        field_name: fieldName,
+        field_order: index + 1,
+      });
+    });
+  }
+  return next;
+}
+
 function countMountedItems(page: ProjectPageApi) {
   return page.bindings.length + page.files.length + (page.manual_text?.trim() ? 1 : 0);
 }
@@ -150,9 +192,12 @@ export function WorkbenchView({ data, students, reportTemplates, onNavigate, onR
   const [pptTemplates, setPptTemplates] = useState<PptTemplateListItemApi[]>([]);
   const [recentProjects, setRecentProjects] = useState<ProjectListItemApi[]>([]);
   const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
+  const [templateSearch, setTemplateSearch] = useState('');
+  const [templateCategory, setTemplateCategory] = useState('全部');
   const [uploadDraft, setUploadDraft] = useState<UploadDraft | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [generationLogs, setGenerationLogs] = useState<GenerationChapterLogBriefApi[]>([]);
   const lastSavedSnapshotRef = useRef('');
   const autoSaveTimerRef = useRef<number | null>(null);
 
@@ -188,7 +233,6 @@ export function WorkbenchView({ data, students, reportTemplates, onNavigate, onR
         lastSavedSnapshotRef.current = snapshot;
         setSaveState('saved');
         await loadAuxiliary();
-        onRefresh();
       } catch {
         setSaveState('error');
       }
@@ -196,10 +240,31 @@ export function WorkbenchView({ data, students, reportTemplates, onNavigate, onR
     return () => {
       if (autoSaveTimerRef.current) window.clearTimeout(autoSaveTimerRef.current);
     };
-  }, [onRefresh, project]);
+  }, [project]);
 
   const selectedStudent = students.find((student) => student.id === selectedStudentId) ?? null;
   const selectedTemplate = pptTemplates.find((template) => template.id === project?.ppt_template_id) ?? null;
+  const templateCategories = useMemo(() => {
+    const set = new Set<string>(['全部']);
+    pptTemplates.forEach((template) => {
+      if (template.category?.trim()) {
+        set.add(template.category.trim());
+      }
+    });
+    return [...set];
+  }, [pptTemplates]);
+  const filteredTemplates = useMemo(() => {
+    const keyword = templateSearch.trim().toLowerCase();
+    return pptTemplates.filter((template) => {
+      const categoryOk = templateCategory === '全部' || (template.category ?? '未分类') === templateCategory;
+      if (!categoryOk) return false;
+      if (!keyword) return true;
+      return [template.name, template.category ?? '', template.source_file_name ?? '']
+        .join(' ')
+        .toLowerCase()
+        .includes(keyword);
+    });
+  }, [pptTemplates, templateCategory, templateSearch]);
   const uploadTargetPage = useMemo(
     () => project?.pages.find((page) => (page.id ?? String(page.page_order)) === uploadDraft?.pageId) ?? null,
     [project, uploadDraft],
@@ -229,6 +294,7 @@ export function WorkbenchView({ data, students, reportTemplates, onNavigate, onR
       lastSavedSnapshotRef.current = JSON.stringify(toProjectPayload(detail));
       setSaveState('saved');
       setStatusMessage('');
+      setGenerationLogs([]);
     } finally {
       setIsSubmitting(false);
     }
@@ -265,8 +331,25 @@ export function WorkbenchView({ data, students, reportTemplates, onNavigate, onR
       lastSavedSnapshotRef.current = JSON.stringify(toProjectPayload(created));
       setSaveState('saved');
       setStatusMessage('');
+      setGenerationLogs([]);
       await loadAuxiliary();
       onRefresh();
+
+      if (selectedStudentId) {
+        setStatusMessage('正在由大模型匹配各章节应挂载的数据字段…');
+        try {
+          const bindingResult = await applyLlmChapterBindings(created.id);
+          const merged = normalizeProject(bindingResult.project);
+          setProject(merged);
+          lastSavedSnapshotRef.current = JSON.stringify(toProjectPayload(merged));
+          setSaveState('saved');
+          await loadAuxiliary();
+          onRefresh();
+          setStatusMessage(bindingResult.skipped_reason ?? '');
+        } catch (err) {
+          setStatusMessage(err instanceof Error ? err.message : '大模型挂载失败，请检查 DASHSCOPE_API_KEY 或稍后重试。');
+        }
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -314,22 +397,15 @@ export function WorkbenchView({ data, students, reportTemplates, onNavigate, onR
     try {
       const synced = await flushProject();
       if (!synced) return;
-      const history = await createHistoryEntry({
-        project_id: synced.id,
-        student_id: synced.student_id ?? null,
-        report_title: selectedStudent?.name ? `${selectedStudent.name}-${selectedReportType}` : selectedReportType,
-        ppt_template_id: synced.ppt_template_id ?? null,
-        report_template_id: synced.report_template_id ?? null,
-        output_format: 'pptx',
-        status: 'queued',
-        output_file_path: null,
-      });
+      setStatusMessage('正在按章节生成 PPT，请稍候…');
+      const result = await generateProjectPpt(synced.id);
       updateProjectDraft((current) => ({
         ...current,
-        status: 'queued',
-        messages: [...current.messages, { role: 'assistant', content: `已创建制作任务，状态为 ${history.status ?? 'queued'}。` }],
+        status: result.status,
+        messages: [...current.messages, { role: 'assistant', content: `生成完成：${result.output_file_name}（${result.slide_count} 页）` }],
       }));
-      setStatusMessage('已创建制作任务，等待接入 PPT 生成引擎。');
+      setGenerationLogs(result.chapter_log_items ?? []);
+      setStatusMessage(`生成完成：${result.output_file_name}`);
       onRefresh();
     } finally {
       setIsSubmitting(false);
@@ -412,7 +488,7 @@ export function WorkbenchView({ data, students, reportTemplates, onNavigate, onR
                 <button type="button" className="soft-button" onClick={() => onNavigate('templates')}>查看模板中心</button>
               </div>
               <button type="button" className="accent-button studio-submit-button" onClick={() => void handleCreateProject()} disabled={isSubmitting}>
-                生成草稿
+                开始生成
                 <Icon name="arrowRight" className="button-icon" />
               </button>
             </div>
@@ -495,7 +571,17 @@ export function WorkbenchView({ data, students, reportTemplates, onNavigate, onR
                             {Object.entries(grouped).map(([groupName, fields]) => (
                               <label key={`${pageId}-${groupName}`} className="presentation-binding-row is-editable">
                                 <span>{groupName}</span>
-                                <textarea className="binding-editor" rows={3} value={fields.join('\n')} onChange={(event) => updatePage(pageId, (current) => ({ ...current, bindings: parseFieldInput(event.target.value).map((fieldName, index) => ({ binding_group: groupName, field_name: fieldName, field_order: index + 1 })) }))} />
+                                <textarea
+                                  className="binding-editor"
+                                  rows={3}
+                                  value={fields.join('\n')}
+                                  onChange={(event) =>
+                                    updatePage(pageId, (current) => ({
+                                      ...current,
+                                      bindings: replaceBindingGroup(current.bindings, groupName, parseFieldInput(event.target.value)),
+                                    }))
+                                  }
+                                />
                               </label>
                             ))}
                           </div>
@@ -527,6 +613,22 @@ export function WorkbenchView({ data, students, reportTemplates, onNavigate, onR
           <div className="studio-footer-copy">
             {selectedTemplate ? <strong className="studio-template-badge">已选模板：{selectedTemplate.name}</strong> : <span>请先选择 PPT 模板</span>}
             {statusMessage ? <span>{statusMessage}</span> : null}
+            {generationLogs.length ? (
+              <div className="generation-log-list">
+                {generationLogs.map((log) => (
+                  <div key={`${log.chapter_order}-${log.template_section_index}`} className="generation-log-item">
+                    <span>
+                      章节{log.chapter_order} · 模板段{log.template_section_index} · LLM命中{log.llm_hit_count} · 回退{log.fallback_count}
+                    </span>
+                    {log.status !== 'completed' ? (
+                      <button type="button" className="soft-button" onClick={() => void handleStartMaking()} disabled={isSubmitting}>
+                        重试该章节
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
           <div className="studio-footer-actions">
             <button type="button" className="accent-button" onClick={() => selectedTemplate ? void handleStartMaking() : setIsTemplatePickerOpen(true)} disabled={isSubmitting}>{selectedTemplate ? '开始制作' : '选择模板'}</button>
@@ -578,14 +680,26 @@ export function WorkbenchView({ data, students, reportTemplates, onNavigate, onR
         <div className="modal-backdrop" onClick={() => setIsTemplatePickerOpen(false)}>
           <div className="modal-panel template-picker-modal" onClick={(event) => event.stopPropagation()}>
             <div className="modal-head"><strong>选择 PPT 模板</strong><button type="button" className="modal-close" onClick={() => setIsTemplatePickerOpen(false)}>×</button></div>
+            <div className="template-picker-toolbar">
+              <label className="template-picker-search">
+                <input value={templateSearch} onChange={(event) => setTemplateSearch(event.target.value)} placeholder="搜索模板名称或文件名" />
+              </label>
+              <div className="template-picker-filter-strip">
+                {templateCategories.map((category) => (
+                  <button key={category} type="button" className={`ghost-pill ${templateCategory === category ? 'is-selected' : ''}`} onClick={() => setTemplateCategory(category)}>
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="template-picker-grid">
-              {pptTemplates.map((template) => (
+              {filteredTemplates.map((template) => (
                 <button key={template.id} type="button" className={`template-picker-card ${project.ppt_template_id === template.id ? 'is-active' : ''}`} onClick={() => { updateProjectDraft((current) => ({ ...current, ppt_template_id: template.id })); setIsTemplatePickerOpen(false); }}>
                   <div className="template-picker-cover" style={{ background: 'linear-gradient(135deg, #f8fafc, #eef3f8)' }} />
-                  <div className="template-picker-meta"><strong>{template.name}</strong><span>{template.page_count} 页</span></div>
+                  <div className="template-picker-meta"><strong>{template.name}</strong><span>{template.page_count} 页 · {template.category ?? '未分类'} · {template.parse_status}</span></div>
                 </button>
               ))}
-              {pptTemplates.length === 0 ? <div className="report-template-empty"><span>暂无 PPT 模板</span><button type="button" className="soft-button" onClick={() => onNavigate('templates')}>去模板中心</button></div> : null}
+              {filteredTemplates.length === 0 ? <div className="report-template-empty"><span>没有匹配的 PPT 模板</span><button type="button" className="soft-button" onClick={() => onNavigate('templates')}>去模板中心</button></div> : null}
             </div>
           </div>
         </div>

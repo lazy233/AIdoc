@@ -475,6 +475,65 @@ class ProjectDetail(ProjectPayload):
   messages: list[ProjectChatMessageDetail] = Field(default_factory=list)
 
 
+class LlmBindingApplicationResult(BaseModel):
+  project: ProjectDetail
+  applied: bool
+  skipped_reason: str | None = None
+
+
+def project_detail_to_payload(detail: ProjectDetail) -> ProjectPayload:
+  return ProjectPayload(
+    student_id=detail.student_id,
+    report_type=detail.report_type,
+    report_template_id=detail.report_template_id,
+    ppt_template_id=detail.ppt_template_id,
+    prompt=detail.prompt,
+    status=detail.status,
+    pages=[
+      ProjectPagePayload(
+        id=p.id,
+        page_order=p.page_order,
+        title=p.title,
+        description=p.description,
+        slide_hint=p.slide_hint,
+        manual_text=p.manual_text,
+        bindings=[
+          ProjectBindingPayload(
+            id=b.id,
+            binding_group=b.binding_group,
+            field_name=b.field_name,
+            field_order=b.field_order,
+          )
+          for b in p.bindings
+        ],
+        files=[
+          ProjectFilePayload(
+            id=f.id,
+            file_name=f.file_name,
+            file_type=f.file_type,
+            mime_type=f.mime_type,
+            file_path=f.file_path,
+            file_size=f.file_size,
+            description=f.description,
+            created_at=f.created_at,
+          )
+          for f in p.files
+        ],
+      )
+      for p in detail.pages
+    ],
+    messages=[
+      ProjectChatMessagePayload(
+        id=m.id,
+        role=m.role,
+        content=m.content,
+        created_at=m.created_at,
+      )
+      for m in detail.messages
+    ],
+  )
+
+
 class GenerationHistoryPayload(BaseModel):
   project_id: str | None = None
   student_id: str | None = None
@@ -526,3 +585,39 @@ class ReportGenerationResponse(BaseModel):
   message: str
   artifact: GeneratedArtifact
   outline: list[OutlineBlock]
+
+
+class ProjectGenerationResponse(BaseModel):
+  task_id: str
+  project_id: str
+  history_id: str
+  status: str
+  output_file_path: str
+  output_file_name: str
+  slide_count: int
+  chapter_logs: list[str] = Field(default_factory=list)
+  chapter_log_items: list['GenerationChapterLogBrief'] = Field(default_factory=list)
+  message: str
+
+
+class GenerationChapterLogBrief(BaseModel):
+  chapter_order: int
+  template_section_index: int
+  template_page_count: int
+  llm_hit_count: int
+  fallback_count: int
+  status: str
+  error_message: str | None = None
+
+
+class GenerationChapterLogItem(BaseModel):
+  id: str
+  history_id: str
+  chapter_order: int
+  template_section_index: int
+  template_page_count: int
+  llm_hit_count: int
+  fallback_count: int
+  status: str
+  error_message: str | None = None
+  created_at: datetime

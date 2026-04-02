@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from app.models.schemas import (
   OperationStatus,
@@ -10,6 +10,8 @@ from app.models.schemas import (
   ReportTemplatePayload,
   TemplateCenterData,
 )
+from app.core.config import get_settings
+from app.services.ppt_template_ingest import _extract_embedded_cover_image, ingest_ppt_template
 from app.services.postgres_repository import postgres_repository
 
 
@@ -31,11 +33,41 @@ def create_ppt_template(payload: PptTemplatePayload) -> PptTemplateDetail:
   return postgres_repository.create_ppt_template(payload)
 
 
+@router.post('/ppt-templates/upload', response_model=PptTemplateDetail, status_code=status.HTTP_201_CREATED)
+async def upload_ppt_template(file: UploadFile = File(...)) -> PptTemplateDetail:
+  suffix = (file.filename or '').lower()
+  if not (suffix.endswith('.ppt') or suffix.endswith('.pptx')):
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='仅支持上传 .ppt 或 .pptx 文件')
+
+  content = await file.read()
+  if not content:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='上传文件为空')
+
+  return ingest_ppt_template(file.filename or 'template.pptx', content)
+
+
 @router.get('/ppt-templates/{template_id}', response_model=PptTemplateDetail)
 def get_ppt_template(template_id: str) -> PptTemplateDetail:
   template = postgres_repository.get_ppt_template(template_id)
   if not template:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='PPT template not found')
+  storage_root = get_settings().storage_root
+  needs_cover_refresh = False
+  if template.source_file_path:
+    if not template.cover_image_path:
+      needs_cover_refresh = True
+    else:
+      cover_path = storage_root / template.cover_image_path
+      needs_cover_refresh = not cover_path.exists()
+  if needs_cover_refresh and template.source_file_path:
+    source_path = get_settings().storage_root / template.source_file_path
+    if source_path.exists():
+      cover_image_path = _extract_embedded_cover_image(source_path)
+      if cover_image_path:
+        postgres_repository.update_ppt_template_cover(template_id, cover_image_path)
+        refreshed = postgres_repository.get_ppt_template(template_id)
+        if refreshed:
+          return refreshed
   return template
 
 

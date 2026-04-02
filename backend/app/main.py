@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
 from app.core.config import get_settings
@@ -31,6 +32,7 @@ def create_app() -> FastAPI:
         }
 
     application.include_router(api_router, prefix=settings.api_prefix)
+    application.mount('/storage', StaticFiles(directory=settings.storage_root), name='storage')
     return application
 
 

@@ -172,24 +172,27 @@ export function ReportTemplateManagerView({
       <div className="report-template-shell">
         <aside className="card report-template-sidebar">
           <SectionHeader title="报告模板" />
-
-          <div className="report-template-list">
-            {templates.map((template) => (
-              <button
-                key={template.id}
-                type="button"
-                className={`report-template-item ${selectedTemplateId === template.id ? 'is-active' : ''}`}
-                onClick={() => setSelectedTemplateId(template.id)}
-              >
-                <div className="report-template-item-head">
-                  <strong>{template.name}</strong>
-                  <span className="report-template-status">{template.status}</span>
-                </div>
-                <div className="report-template-item-meta">
-                  <span>{template.sections.length} 个章节</span>
-                </div>
-              </button>
-            ))}
+          <div className="report-template-sidebar-scroll">
+            <div className="report-template-list">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  className={`report-template-item ${selectedTemplateId === template.id ? 'is-active' : ''}`}
+                  onClick={() => setSelectedTemplateId(template.id)}
+                >
+                  <div className="report-template-item-head">
+                    <strong>{template.name}</strong>
+                    <span className={`report-template-status ${template.status === 'published' ? 'is-enabled' : ''}`}>
+                      {template.status === 'published' ? '已发布' : '草稿'}
+                    </span>
+                  </div>
+                  <div className="report-template-item-meta">
+                    <span>{template.sections.length} 个章节</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </aside>
 
@@ -228,20 +231,16 @@ export function ReportTemplateManagerView({
                       }))
                     }
                   >
-                    <option value="draft">draft</option>
-                    <option value="published">published</option>
+                    <option value="draft">草稿（draft）</option>
+                    <option value="published">已发布（published）</option>
                   </select>
                 </label>
               </div>
 
-              <div className="report-template-section-bar">
-                <div>
-                  <strong>章节页面</strong>
-                </div>
-              </div>
-
               <div className="report-template-tabs">
-                <div className="report-template-tab-strip">
+                <div className="report-template-tabs-toolbar">
+                  <p className="report-template-tabs-label">章节页面</p>
+                  <div className="report-template-tab-strip">
                   {selectedTemplate.sections.map((section, index) => (
                     <div key={section.id} className={`report-template-tab ${selectedSectionId === section.id ? 'is-active' : ''}`}>
                       <button type="button" className="report-template-tab-main" onClick={() => setSelectedSectionId(section.id)}>
@@ -262,13 +261,16 @@ export function ReportTemplateManagerView({
                   <button type="button" className="report-template-tab-add" onClick={handleAddSection} aria-label="新增章节">
                     +
                   </button>
+                  </div>
                 </div>
 
                 {selectedSection ? (
                   <article className="report-template-tab-panel">
                     <div className="report-template-tab-panel-head">
                       <strong>{selectedSection.title}</strong>
-                      <span>{selectedSection.recommendedPages || '-'}</span>
+                      <span className="report-template-pages-hint" title="页数建议（写入报告用，可与实际 PPT 不完全一致）">
+                        建议 {selectedSection.recommendedPages?.trim() || '—'}
+                      </span>
                     </div>
 
                     <div className="report-template-form-grid is-compact">
@@ -286,8 +288,9 @@ export function ReportTemplateManagerView({
                       </label>
 
                       <label className="report-template-field">
-                        <span>页数</span>
+                        <span>页数建议</span>
                         <input
+                          placeholder="例如 1–2"
                           value={selectedSection.recommendedPages}
                           onChange={(event) =>
                             handleUpdateSection(selectedTemplate.id, selectedSection.id, (current) => ({
@@ -327,7 +330,7 @@ export function ReportTemplateManagerView({
                       </label>
 
                       <label className="report-template-field">
-                        <span>数据挂载字段</span>
+                        <span>数据挂载字段（每行一条，建议与字段 id 一致，如 name）</span>
                         <textarea
                           value={arrayToLines(selectedSection.dataBindings)}
                           onChange={(event) =>

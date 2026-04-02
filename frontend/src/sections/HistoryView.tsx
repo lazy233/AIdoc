@@ -6,8 +6,10 @@ import { StatusPill } from '../components/StatusPill';
 import {
   deleteHistoryEntry,
   getHistoryEntry,
+  listHistoryChapterLogs,
   listHistories,
   updateHistoryEntry,
+  type GenerationChapterLogItemApi,
   type GenerationHistoryDetailApi,
   type GenerationHistoryListItemApi,
 } from '../services/api';
@@ -25,6 +27,7 @@ export function HistoryView({ data, onNavigate, onRefresh }: HistoryViewProps) {
   const [statusFilter, setStatusFilter] = useState<FilterKey>('all');
   const [histories, setHistories] = useState<GenerationHistoryListItemApi[]>([]);
   const [detail, setDetail] = useState<GenerationHistoryDetailApi | null>(null);
+  const [chapterLogs, setChapterLogs] = useState<GenerationChapterLogItemApi[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadHistories = async () => {
@@ -54,7 +57,9 @@ export function HistoryView({ data, onNavigate, onRefresh }: HistoryViewProps) {
   ];
 
   const handleOpenDetail = async (historyId: string) => {
-    setDetail(await getHistoryEntry(historyId));
+    const [historyDetail, logs] = await Promise.all([getHistoryEntry(historyId), listHistoryChapterLogs(historyId)]);
+    setDetail(historyDetail);
+    setChapterLogs(logs);
   };
 
   const handleSave = async () => {
@@ -85,6 +90,7 @@ export function HistoryView({ data, onNavigate, onRefresh }: HistoryViewProps) {
     await deleteHistoryEntry(historyId);
     if (detail?.id === historyId) {
       setDetail(null);
+      setChapterLogs([]);
     }
     await loadHistories();
     onRefresh();
@@ -210,6 +216,22 @@ export function HistoryView({ data, onNavigate, onRefresh }: HistoryViewProps) {
                   }
                 />
               </label>
+            </div>
+            <div className="report-template-field is-full">
+              <span>章节执行日志</span>
+              <div className="history-chapter-log-list">
+                {chapterLogs.length ? (
+                  chapterLogs.map((log) => (
+                    <div key={log.id} className="history-chapter-log-item">
+                      章节{log.chapter_order} · 模板段{log.template_section_index} · 页数{log.template_page_count} · LLM命中
+                      {log.llm_hit_count} · 回退{log.fallback_count}
+                      {log.error_message ? ` · 错误：${log.error_message}` : ''}
+                    </div>
+                  ))
+                ) : (
+                  <div className="report-template-empty">暂无章节日志</div>
+                )}
+              </div>
             </div>
 
             <div className="modal-actions">

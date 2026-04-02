@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
-from app.models.schemas import OperationStatus, ProjectDetail, ProjectListItem, ProjectPayload, WorkbenchData
+from app.models.schemas import LlmBindingApplicationResult, OperationStatus, ProjectDetail, ProjectListItem, ProjectPayload, WorkbenchData
+from app.services.chapter_binding_service import apply_llm_chapter_bindings
 from app.services.postgres_repository import postgres_repository
 
 
@@ -20,6 +21,11 @@ def list_projects() -> list[ProjectListItem]:
 @router.post('/projects', response_model=ProjectDetail, status_code=status.HTTP_201_CREATED)
 def create_project(payload: ProjectPayload) -> ProjectDetail:
   return postgres_repository.create_project(payload)
+
+
+@router.post('/projects/{project_id}/llm-bindings', response_model=LlmBindingApplicationResult)
+def post_project_llm_bindings(project_id: str) -> LlmBindingApplicationResult:
+  return apply_llm_chapter_bindings(project_id)
 
 
 @router.get('/projects/{project_id}', response_model=ProjectDetail)

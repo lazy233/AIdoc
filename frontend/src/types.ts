@@ -39,6 +39,7 @@ export interface TemplateItem {
   colorA: string;
   colorB: string;
   premium?: boolean;
+  previewImageUrl?: string;
 }
 
 export interface ModuleItem {
